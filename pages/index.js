@@ -16,70 +16,85 @@ const client = new PrivyClient({
 
 export default function Home() {
   // Use Wagmi Address instead of settingState through privy client.
-  const { address: ethAddress, isConnected } = useAccount();
+  const { address: ethAddress, isConnected, isDisconnected } = useAccount();
 
-  // Use React's useState hook to keep track of the signed in Ethereum address.
+  // Use React's useState hook to keep track of the signed in Ethereum address
   const [address, setAddress] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [favoriteColor, setFavoriteColor] = useState("");
 
   // React States for authentication status + if data has been pushed to Privy.
-  // const [authenticatedwithPrivy, setAuthenticatedwithPrivy] = useState(false);
+  const [authenticatedwithPrivy, setAuthenticatedwithPrivy] = useState(false);
   const [savedData, setSavedData] = useState(false);
 
   // Moved all useEffects to top for readability.
   // Initial Auth.
   useEffect(() => {
-    if (isConnected) {
-      setAddress(ethAddress);
-    }
-  }, [address, ethAddress, isConnected]);
+    setAddress(ethAddress);
+    // authWithPrivy();
+  }, [address, ethAddress]);
 
   // Get the user data from Privy whenever the wallet address is set.
   useEffect(() => {
-    if (isConnected) getUserData();
-  }, [isConnected]);
+    if (address) {
+      getUserData();
+    }
+  }, [address]);
 
   // Set background to user's favorite color.
   useEffect(() => {
     if (!favoriteColor) return;
     document.body.style = `background: ${favoriteColor};`;
-  }, [favoriteColor]);
-
-  // Authenticate with Privy after RainbowKit has connected to the Ethereum network.
-  const authWithPrivy = async () => {
-    try {
-      if (!(await session.isAuthenticated()) && address) {
-        await session.authenticate();
-      }
-    } catch (error) {
-      console.error(error);
+    if (isDisconnected) {
+      setFirstName("");
+      setDateOfBirth("");
+      setFavoriteColor("");
+      document.body.style = `background: white;`;
     }
-  };
+  }, [favoriteColor, isDisconnected]);
+
+  // Auth pattern already asks to sign when you putUserData / client.put()
+  // so seems unnecessary to call twice?
+  // Authenticate with Privy after RainbowKit has connected to the Ethereum network.
+  // const authWithPrivy = async () => {
+  //   try {
+  //     if (!authenticatedwithPrivy || !(await session.isAuthenticated())) {
+  //       await session.authenticate();
+  //       setAddress(ethAddress);
+  //       setAuthenticatedwithPrivy(true);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   // Write the user's name, date-of-birth, and favorite color to Privy.
   const putUserData = async () => {
-    const [name, birthday, color] = await client.put(address, [
-      {
-        field: "first-name",
-        value: firstName,
-      },
-      {
-        field: "date-of-birth",
-        value: dateOfBirth,
-      },
-      {
-        field: "favorite-color",
-        value: favoriteColor,
-      },
-    ]);
-    setFirstName(name.text());
-    setDateOfBirth(birthday.text());
-    setFavoriteColor(color.text());
-    if (name && birthday && color) {
-      console.log("Successfully wrote user data to Privy.");
-      setSavedData(true);
+    try {
+      const [name, birthday, color] = await client.put(address, [
+        {
+          field: "first-name",
+          value: firstName,
+        },
+        {
+          field: "date-of-birth",
+          value: dateOfBirth,
+        },
+        {
+          field: "favorite-color",
+          value: favoriteColor,
+        },
+      ]);
+      setFirstName(name.text());
+      setDateOfBirth(birthday.text());
+      setFavoriteColor(color.text());
+      if (name && birthday && color) {
+        console.log("Successfully wrote user data to Privy.");
+        setSavedData(true);
+      }
+    } catch (error) {
+      console.log("Pushing Privy Data error.", error);
     }
   };
 
@@ -122,16 +137,17 @@ export default function Home() {
     </div>
   );
 
-  const authContent = () => {
-    return (
-      <div>
-        <p> Connect with the wallet first :) </p>
-        <button style={{ borderRadius: 8 }} onClick={authWithPrivy}>
-          {!address ? "Auth with Privy" : "Authed ✅"}
-        </button>
-      </div>
-    );
-  };
+  // If the original connect Wallet button is necessary, can add back in.
+  // const authContent = () => {
+  //   return (
+  //     <div>
+  //       <p> Connect with the wallet first :) </p>
+  //       <button style={{ borderRadius: 8 }} onClick={authWithPrivy}>
+  //         {!address ? "Auth with Privy" : "Authed ✅"}
+  //       </button>
+  //     </div>
+  //   );
+  // };
 
   const connectedContent = () => {
     return (
