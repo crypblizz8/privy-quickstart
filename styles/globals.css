@@ -2,7 +2,7 @@
 
 body {
   text-align: center;
-  font-size: 1.8rem;
+  /* font-size: 1.8rem; */
   font-family: Arial, sans-serif;
 }
 
@@ -73,4 +73,11 @@ button:disabled {
 
 button:active {
   transform: scale(0.99);
+}
+
+/* Header with RainbowWallet */
+div.walletHeader {
+  display: flex;
+  align-content: center;
+  justify-content: flex-end;
 }
