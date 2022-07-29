@@ -43,7 +43,6 @@ export default function Home() {
   }, [address]);
 
   // Set background to user's favorite color.
-  // Test Comment for the Vercel deploy
   useEffect(() => {
     if (!favoriteColor) return;
     document.body.style = `background: ${favoriteColor};`;
