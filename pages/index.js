@@ -15,11 +15,10 @@ const client = new PrivyClient({
 });
 
 export default function Home() {
-  // Use Wagmi Address instead of settingState through privy client.
-  const { address: ethAddress, isConnected, isDisconnected } = useAccount();
+  // Use WAGMI provider for logging in and getting the eth Address.
+  const { address, isDisconnected } = useAccount();
 
   // Use React's useState hook to keep track of the signed in Ethereum address
-  const [address, setAddress] = useState(null);
   const [firstName, setFirstName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [favoriteColor, setFavoriteColor] = useState("");
@@ -27,13 +26,6 @@ export default function Home() {
   // React States for authentication status + if data has been pushed to Privy.
   const [authenticatedwithPrivy, setAuthenticatedwithPrivy] = useState(false);
   const [savedData, setSavedData] = useState(false);
-
-  // Moved all useEffects to top for readability.
-  // Initial Auth.
-  useEffect(() => {
-    setAddress(ethAddress);
-    // authWithPrivy();
-  }, [address, ethAddress]);
 
   // Get the user data from Privy whenever the wallet address is set.
   useEffect(() => {
@@ -53,21 +45,6 @@ export default function Home() {
       document.body.style = `background: white;`;
     }
   }, [favoriteColor, isDisconnected]);
-
-  // Auth pattern already asks to sign when you putUserData / client.put()
-  // so seems unnecessary to call twice?
-  // Authenticate with Privy after RainbowKit has connected to the Ethereum network.
-  // const authWithPrivy = async () => {
-  //   try {
-  //     if (!authenticatedwithPrivy || !(await session.isAuthenticated())) {
-  //       await session.authenticate();
-  //       setAddress(ethAddress);
-  //       setAuthenticatedwithPrivy(true);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
 
   // Write the user's name, date-of-birth, and favorite color to Privy.
   const putUserData = async () => {
@@ -94,20 +71,9 @@ export default function Home() {
         setSavedData(true);
       }
     } catch (error) {
-      console.log("Pushing Privy Data error.", error);
+      console.log("Error when writing data to Privy:", error);
     }
   };
-
-  // Commented out due to Rainbowkit already tracking...
-  // Can remove later if no bugs.
-
-  // const updateAddress = async () => {
-  //   const address = await session.address();
-  //   // setAddress(address);
-  // };
-  // useEffect(() => {
-  //   // updateAddress();
-  // }, []);
 
   // Get user data from Privy for initial state if user has already written to the DB.
   const getUserData = async () => {
@@ -136,18 +102,6 @@ export default function Home() {
       </div>
     </div>
   );
-
-  // If the original connect Wallet button is necessary, can add back in.
-  // const authContent = () => {
-  //   return (
-  //     <div>
-  //       <p> Connect with the wallet first :) </p>
-  //       <button style={{ borderRadius: 8 }} onClick={authWithPrivy}>
-  //         {!address ? "Auth with Privy" : "Authed ✅"}
-  //       </button>
-  //     </div>
-  //   );
-  // };
 
   const connectedContent = () => {
     return (
